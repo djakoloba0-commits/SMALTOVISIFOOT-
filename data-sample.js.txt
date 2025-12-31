@@ -1,0 +1,90 @@
+// Données de démonstration (remplaçables par des APIs plus tard)
+window.SMALTOVISI_SAMPLE = {
+  match: {
+    sport: "football",
+    competition: "Démo League",
+    date: "2025-12-31",
+    teamA: "Équipe A",
+    teamB: "Équipe B",
+    venue: "Stade A",
+    weather: "Inconnu (démo)",
+    notes: "Exemple statique — à connecter à données réelles.",
+  },
+
+  A_forme: {
+    lastMatchesA: ["W 2-1", "D 1-1", "W 3-0", "L 0-1", "W 1-0"],
+    lastMatchesB: ["L 0-2", "W 1-0", "D 2-2", "L 1-3", "D 0-0"],
+    tendencies: [
+      "A marque régulièrement sur les 5 derniers matchs (démo).",
+      "B concède souvent 1+ but sur la période (démo).",
+    ],
+    homeAway: "A domicile/extérieur non renseigné (démo).",
+  },
+
+  B_h2h: {
+    recent: ["A 1-0 B", "B 2-2 A", "A 2-1 B"],
+    patterns: ["Matchs serrés, peu d’écarts (démo)."],
+    matchups: ["Aile droite A vs latéral gauche B (démo)."],
+  },
+
+  C_contexte: {
+    stakes: "Enjeux non confirmés (démo).",
+    motivation: "Motivation supposée (démo).",
+    fatigue: "Fatigue/déplacements inconnus (démo).",
+    extras: "Aucun facteur extra-sportif confirmé (démo).",
+  },
+
+  D_stats: {
+    xG_A: 1.62,
+    xGA_A: 0.98,
+    xG_B: 1.12,
+    xGA_B: 1.44,
+    shotsOnTarget_A: 5.1,
+    shotsOnTarget_B: 3.6,
+    convRate_A: "12% (démo)",
+    convRate_B: "9% (démo)",
+    setPieces: "Non mesuré (démo).",
+  },
+
+  E_cotes: {
+    // Exemples
+    odds_1: 2.05,
+    odds_X: 3.25,
+    odds_2: 3.60,
+    odds_over25: 1.95,
+    odds_btts: 1.90
+  },
+
+  F_valueBets: [
+    {
+      bet: "1 (Équipe A gagne)",
+      odds: 2.05,
+      impliedProb: null,
+      estimatedProb: 0.54,
+      risk: "Modéré",
+      why: "Exemple : xG supérieur + dynamique récente (démo)."
+    },
+    {
+      bet: "Over 2.5",
+      odds: 1.95,
+      impliedProb: null,
+      estimatedProb: 0.52,
+      risk: "Élevé",
+      why: "Exemple : tendance buts + xGA B élevé (démo)."
+    }
+  ],
+
+  biais: [
+    { name: "Biais de récence", status: "À surveiller", note: "Échantillon 5 matchs seulement (démo)." },
+    { name: "Échantillon trop faible", status: "Présent", note: "Données limitées en démo." },
+    { name: "Surinterprétation", status: "À surveiller", note: "Tendances non vérifiées." },
+    { name: "Favoritisme", status: "Non détecté", note: "Aucun nom d’équipe réelle." }
+  ],
+
+  questions: [
+    "Quel type de pari veux-tu prioriser (1N2 / Over-Under / Handicap / Buteur) ?",
+    "Niveau de risque acceptable (faible / modéré / élevé) ?",
+    "Objectif : sécuriser (bankroll) ou chercher gros gain ?",
+    "Combien de matchs veux-tu dans une combinaison ?"
+  ]
+};

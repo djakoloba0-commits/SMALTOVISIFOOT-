@@ -1,0 +1,264 @@
+const $ = (sel) => document.querySelector(sel);
+
+function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+function round2(n){ return Math.round(n * 100) / 100; }
+
+function impliedProbFromOdds(odds){
+  if(!odds || odds <= 1) return null;
+  return 1 / odds;
+}
+
+function fmtPct(p){
+  if(p === null || p === undefined) return "—";
+  return `${Math.round(p * 100)}%`;
+}
+
+function riskPillClass(risk){
+  const r = (risk || "").toLowerCase();
+  if (r.includes("faible")) return "pill--good";
+  if (r.includes("mod")) return "pill--warn";
+  if (r.includes("élev")) return "pill--bad";
+  return "";
+}
+
+function setConfidence(score){
+  const s = clamp(Number(score) || 0, 0, 100);
+  $("#confidenceValue").textContent = String(s);
+  $("#confidenceBar").style.width = `${s}%`;
+}
+
+function buildReport(data){
+  const m = data.match;
+
+  const A = data.A_forme;
+  const B = data.B_h2h;
+  const C = data.C_contexte;
+  const D = data.D_stats;
+  const E = data.E_cotes;
+
+  // Score de confiance (démo) : baisse si beaucoup d'éléments "démo/inconnu"
+  let confidence = 72;
+  const unknownPenalty = [
+    m.weather, A.homeAway, C.stakes, C.fatigue, D.setPieces
+  ].filter(v => (v || "").toLowerCase().includes("inconnu") || (v || "").toLowerCase().includes("non")).length;
+  confidence -= unknownPenalty * 6;
+  confidence = clamp(confidence, 0, 100);
+  setConfidence(confidence);
+
+  const implied1 = impliedProbFromOdds(E.odds_1);
+  const impliedX = impliedProbFromOdds(E.odds_X);
+  const implied2 = impliedProbFromOdds(E.odds_2);
+
+  const reportHTML = `
+    <div class="section">
+      <h3>Match <span class="pill">${m.sport.toUpperCase()}</span></h3>
+      <div class="kv">
+        <div class="item"><div class="label">Affiche</div><div class="value">${m.teamA} vs ${m.teamB}</div></div>
+        <div class="item"><div class="label">Compétition</div><div class="value">${m.competition || "—"}</div></div>
+        <div class="item"><div class="label">Date</div><div class="value">${m.date || "—"}</div></div>
+        <div class="item"><div class="label">Contexte</div><div class="value">${m.notes || "—"}</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>A. Dynamique et forme récente</h3>
+      <div class="kv">
+        <div class="item"><div class="label">${m.teamA} — 5 derniers</div><div class="value">${A.lastMatchesA.join(" • ")}</div></div>
+        <div class="item"><div class="label">${m.teamB} — 5 derniers</div><div class="value">${A.lastMatchesB.join(" • ")}</div></div>
+      </div>
+      <div style="margin-top:10px" class="pills">
+        ${A.tendencies.map(t => `<span class="pill">${t}</span>`).join("")}
+        <span class="pill">${A.homeAway}</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>B. Historique des confrontations (H2H)</h3>
+      <div class="pills">
+        ${B.recent.map(x => `<span class="pill">${x}</span>`).join("")}
+      </div>
+      <div style="margin-top:10px" class="pills">
+        ${B.patterns.map(x => `<span class="pill pill--warn">${x}</span>`).join("")}
+        ${B.matchups.map(x => `<span class="pill">${x}</span>`).join("")}
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>C. Contexte et psychologie</h3>
+      <div class="kv">
+        <div class="item"><div class="label">Enjeux</div><div class="value">${C.stakes}</div></div>
+        <div class="item"><div class="label">Motivation</div><div class="value">${C.motivation}</div></div>
+        <div class="item"><div class="label">Fatigue / calendrier</div><div class="value">${C.fatigue}</div></div>
+        <div class="item"><div class="label">Extras</div><div class="value">${C.extras}</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>D. Statistiques avancées</h3>
+      <div class="kv">
+        <div class="item"><div class="label">xG ${m.teamA}</div><div class="value">${D.xG_A}</div></div>
+        <div class="item"><div class="label">xGA ${m.teamA}</div><div class="value">${D.xGA_A}</div></div>
+        <div class="item"><div class="label">xG ${m.teamB}</div><div class="value">${D.xG_B}</div></div>
+        <div class="item"><div class="label">xGA ${m.teamB}</div><div class="value">${D.xGA_B}</div></div>
+        <div class="item"><div class="label">Tirs cadrés ${m.teamA}</div><div class="value">${D.shotsOnTarget_A}</div></div>
+        <div class="item"><div class="label">Tirs cadrés ${m.teamB}</div><div class="value">${D.shotsOnTarget_B}</div></div>
+      </div>
+      <div style="margin-top:10px" class="pills">
+        <span class="pill">Conversion A: ${D.convRate_A}</span>
+        <span class="pill">Conversion B: ${D.convRate_B}</span>
+        <span class="pill pill--warn">CPA: ${D.setPieces}</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>E. Analyse des cotes</h3>
+      <div class="kv">
+        <div class="item"><div class="label">Cote 1</div><div class="value">${E.odds_1}</div></div>
+        <div class="item"><div class="label">Proba implicite 1</div><div class="value">${fmtPct(implied1)}</div></div>
+        <div class="item"><div class="label">Cote N</div><div class="value">${E.odds_X}</div></div>
+        <div class="item"><div class="label">Proba implicite N</div><div class="value">${fmtPct(impliedX)}</div></div>
+        <div class="item"><div class="label">Cote 2</div><div class="value">${E.odds_2}</div></div>
+        <div class="item"><div class="label">Proba implicite 2</div><div class="value">${fmtPct(implied2)}</div></div>
+      </div>
+      <div style="margin-top:10px" class="pills">
+        <span class="pill">Over 2.5: ${E.odds_over25}</span>
+        <span class="pill">BTTS: ${E.odds_btts}</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>F. Identification des value bets</h3>
+      <p class="muted" style="margin: 0;">
+        Les “écarts” ci‑dessous = Proba estimée – Proba implicite. (Démo : à alimenter par données réelles ensuite.)
+      </p>
+    </div>
+  `;
+
+  $("#report").classList.remove("empty");
+  $("#report").innerHTML = reportHTML;
+
+  // Table des paris
+  renderBetsTable(data.F_valueBets);
+
+  // Biais
+  renderBias(data.biais);
+
+  // Questions
+  renderQuestions(data.questions);
+}
+
+function renderBetsTable(bets){
+  const tbody = $("#betsTable tbody");
+  if(!bets || bets.length === 0){
+    tbody.innerHTML = `<tr><td colspan="6" class="muted">Aucun pari.</td></tr>`;
+    return;
+  }
+
+  // Calcul implied prob + écart
+  const normalized = bets.map(b => {
+    const implied = (b.impliedProb ?? impliedProbFromOdds(b.odds));
+    const est = b.estimatedProb ?? null;
+    const gap = (implied !== null && est !== null) ? (est - implied) : null;
+    return { ...b, impliedProb: implied, gap };
+  });
+
+  // Tri : du plus sûr au plus risqué (faible -> modéré -> élevé) puis gap desc
+  const riskRank = (r="") => {
+    const x = r.toLowerCase();
+    if(x.includes("faible")) return 0;
+    if(x.includes("mod")) return 1;
+    if(x.includes("élev")) return 2;
+    return 3;
+  };
+
+  normalized.sort((a,b) => {
+    const rr = riskRank(a.risk) - riskRank(b.risk);
+    if(rr !== 0) return rr;
+    return (b.gap ?? -999) - (a.gap ?? -999);
+  });
+
+  tbody.innerHTML = normalized.map(b => `
+    <tr>
+      <td>
+        <div style="font-weight:800">${b.bet}</div>
+        <div class="muted" style="font-size:12px; margin-top:4px">${b.why || ""}</div>
+      </td>
+      <td>${b.odds ?? "—"}</td>
+      <td>${fmtPct(b.impliedProb)}</td>
+      <td>${fmtPct(b.estimatedProb)}</td>
+      <td>${b.gap === null ? "—" : `${round2(b.gap*100)} pts`}</td>
+      <td><span class="pill ${riskPillClass(b.risk)}">${b.risk || "—"}</span></td>
+    </tr>
+  `).join("");
+}
+
+function renderBias(items){
+  const ul = $("#biasList");
+  if(!items || items.length === 0){
+    ul.innerHTML = `<li class="muted">Aucun biais.</li>`;
+    return;
+  }
+  ul.innerHTML = items.map(x => `
+    <li>
+      <div style="display:flex; justify-content:space-between; gap:10px">
+        <div style="font-weight:800">${x.name}</div>
+        <div class="muted">${x.status}</div>
+      </div>
+      <div class="muted" style="font-size:12px; margin-top:6px">${x.note || ""}</div>
+    </li>
+  `).join("");
+}
+
+function renderQuestions(qs){
+  const ul = $("#questionsList");
+  if(!qs || qs.length === 0){
+    ul.innerHTML = `<li class="muted">Aucune question.</li>`;
+    return;
+  }
+  ul.innerHTML = qs.map(q => `<li>${q}</li>`).join("");
+}
+
+function readForm(){
+  return {
+    sport: $("#sport").value,
+    competition: $("#competition").value.trim(),
+    date: $("#date").value,
+    teamA: $("#teamA").value.trim(),
+    teamB: $("#teamB").value.trim(),
+    market: $("#market").value
+  };
+}
+
+function mergeUserMatchIntoSample(form){
+  const sample = structuredClone(window.SMALTOVISI_SAMPLE);
+  sample.match.sport = form.sport || sample.match.sport;
+  sample.match.competition = form.competition || sample.match.competition;
+  sample.match.date = form.date || sample.match.date;
+  sample.match.teamA = form.teamA || sample.match.teamA;
+  sample.match.teamB = form.teamB || sample.match.teamB;
+  return sample;
+}
+
+function init(){
+  $("#year").textContent = String(new Date().getFullYear());
+
+  $("#loadDemo").addEventListener("click", () => {
+    $("#sport").value = "football";
+    $("#competition").value = window.SMALTOVISI_SAMPLE.match.competition;
+    $("#date").value = window.SMALTOVISI_SAMPLE.match.date;
+    $("#teamA").value = window.SMALTOVISI_SAMPLE.match.teamA;
+    $("#teamB").value = window.SMALTOVISI_SAMPLE.match.teamB;
+    $("#market").value = "1X2";
+    buildReport(window.SMALTOVISI_SAMPLE);
+  });
+
+  $("#matchForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const form = readForm();
+    const payload = mergeUserMatchIntoSample(form);
+    buildReport(payload);
+    document.getElementById("reportCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+init();

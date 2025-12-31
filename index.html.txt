@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SMALTOVISIFOOT — Analyse prédictive & Value Bets</title>
+  <meta name="description" content="SMALTOVISIFOOT : analyses structurées (forme, H2H, contexte, stats avancées, cotes, value bets, biais, score de confiance) basées sur données factuelles." />
+  <meta name="theme-color" content="#061a17" />
+
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <div class="brand">
+        <div class="brand__logo" aria-hidden="true">S</div>
+        <div class="brand__text">
+          <div class="brand__name">SMALTOVISIFOOT</div>
+          <div class="brand__tag">Analyse prédictive • Value bets • Discipline</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#analyse" class="nav__link">Analyse</a>
+        <a href="#valuebets" class="nav__link">Value Bets</a>
+        <a href="#biais" class="nav__link">Biais</a>
+        <a href="#faq" class="nav__link">Questions</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero__content">
+        <h1>Des pronostics structurés, vérifiables, et orientés décision.</h1>
+        <p>
+          Entre un match / événement, puis lance l’analyse selon ton cadre :
+          forme récente, head‑to‑head, contexte, stats avancées, cotes, value bets, biais,
+          et score de confiance.
+        </p>
+        <div class="hero__badges">
+          <span class="badge">Football</span>
+          <span class="badge">Tennis (surface)</span>
+          <span class="badge">Cotes & probas implicites</span>
+          <span class="badge">Écart de valeur</span>
+        </div>
+      </div>
+
+      <div class="hero__panel" id="analyse">
+        <form id="matchForm" class="card">
+          <div class="card__header">
+            <h2>Configurer le match</h2>
+            <p class="muted">Mode démo : données d’exemple incluses (remplaçables par API plus tard).</p>
+          </div>
+
+          <div class="grid">
+            <label class="field">
+              <span>Sport</span>
+              <select id="sport">
+                <option value="football" selected>Football</option>
+                <option value="tennis">Tennis</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Compétition / Tournoi</span>
+              <input id="competition" type="text" placeholder="Ex: Premier League, CAN, ATP..." />
+            </label>
+
+            <label class="field">
+              <span>Équipe / Joueur A</span>
+              <input id="teamA" type="text" placeholder="Ex: Chelsea / Djokovic" />
+            </label>
+
+            <label class="field">
+              <span>Équipe / Joueur B</span>
+              <input id="teamB" type="text" placeholder="Ex: Arsenal / Nadal" />
+            </label>
+
+            <label class="field">
+              <span>Date (optionnel)</span>
+              <input id="date" type="date" />
+            </label>
+
+            <label class="field">
+              <span>Marché visé</span>
+              <select id="market">
+                <option value="1X2" selected>1N2 / Moneyline</option>
+                <option value="OU">Over/Under</option>
+                <option value="AH">Handicap</option>
+                <option value="BTTS">BTTS (les 2 marquent)</option>
+                <option value="SCOR">Score exact</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn--primary">Lancer l’analyse</button>
+            <button type="button" id="loadDemo" class="btn btn--ghost">Charger un exemple</button>
+          </div>
+        </form>
+
+        <div class="card card--mini">
+          <div class="mini">
+            <div class="mini__title">Score de confiance</div>
+            <div class="progress">
+              <div class="progress__bar" id="confidenceBar" style="width:0%"></div>
+            </div>
+            <div class="mini__value"><span id="confidenceValue">0</span>/100</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="col">
+        <article class="card" id="reportCard">
+          <div class="card__header">
+            <h2>Rapport d’analyse</h2>
+            <p class="muted">Sortie structurée A→F + biais + recommandations.</p>
+          </div>
+
+          <div id="report" class="report empty">
+            <p>Remplis le formulaire puis clique sur “Lancer l’analyse”.</p>
+          </div>
+        </article>
+      </div>
+
+      <aside class="col col--side">
+        <section class="card" id="valuebets">
+          <div class="card__header">
+            <h2>Tableau des paris</h2>
+            <p class="muted">Classés du plus sûr au plus risqué.</p>
+          </div>
+
+          <div class="tableWrap">
+            <table class="table" id="betsTable">
+              <thead>
+                <tr>
+                  <th>Pari</th>
+                  <th>Cote</th>
+                  <th>Proba implicite</th>
+                  <th>Proba estimée</th>
+                  <th>Écart</th>
+                  <th>Risque</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" class="muted">Aucun pari encore.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card" id="biais">
+          <div class="card__header">
+            <h2>Détection des biais</h2>
+            <p class="muted">Vérification systématique.</p>
+          </div>
+          <ul class="checklist" id="biasList">
+            <li class="muted">En attente de rapport…</li>
+          </ul>
+        </section>
+
+        <section class="card" id="faq">
+          <div class="card__header">
+            <h2>Questions à affiner</h2>
+            <p class="muted">Affiche les questions quand des infos manquent.</p>
+          </div>
+          <ul class="qa" id="questionsList">
+            <li class="muted">Aucune question pour l’instant.</li>
+          </ul>
+        </section>
+      </aside>
+    </section>
+
+    <footer class="footer">
+      <div class="footer__inner">
+        <div class="muted">
+          © <span id="year"></span> SMALTOVISIFOOT • Démo statique (à connecter à des APIs de stats/cotes ensuite).
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script src="./assets/js/data-sample.js"></script>
+  <script src="./assets/js/app.js"></script>
+</body>
+</html>

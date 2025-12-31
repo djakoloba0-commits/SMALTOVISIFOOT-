@@ -1,0 +1,10 @@
+# SMALTOVISIFOOT
+
+Site web de paris sportifs (démo statique) avec sortie structurée :
+A. Forme • B. H2H • C. Contexte • D. Stats avancées • E. Cotes • F. Value Bets • Biais • Score de confiance • Questions.
+
+## Déploiement GitHub Pages (rapide)
+1. Crée un repo GitHub et upload tous les fichiers.
+2. Settings → Pages → Deploy from a branch → main / (root).
+3. Attends le lien GitHub Pages.
+4. Mets à jour robots.txt et sitemap.xml avec l'URL finale.
